@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LLM Prompt Console</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #13161e;
+      --border:    #1e2330;
+      --accent:    #00e5a0;
+      --accent2:   #0099ff;
+      --text:      #c8d0e0;
+      --muted:     #4a5370;
+      --warn:      #ff6b6b;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+    }
+
+    /* Subtle grid background */
+    /*body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }*/
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 780px;
+    }
+
+    /* ── Header ── */
+    header {
+      margin-bottom: 48px;
+      border-left: 3px solid var(--accent);
+      padding-left: 20px;
+      animation: slideIn 0.5s ease both;
+    }
+    .tag {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: var(--sans);
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+    h1 span { color: var(--accent); }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    /* ── Step badge ── */
+    .step-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Select ── */
+    .select-wrap {
+      position: relative;
+    }
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 14px 44px 14px 16px;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    select:hover, select:focus { border-color: var(--accent); }
+    .chevron {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--muted);
+    }
+
+    /* ── Prompt preview ── */
+    #prompt-preview {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 56px;
+      line-height: 1.6;
+      transition: all 0.3s;
+      display: none;
+    }
+    #prompt-preview.visible {
+      display: block;
+      border-color: var(--accent2);
+      color: var(--text);
+    }
+    #prompt-preview::before {
+      content: '$ prompt ▸ ';
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    /* ── Submit button ── */
+    button#submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+    button#submit-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    button#submit-btn:active:not(:disabled) { transform: translateY(0); }
+    button#submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Loading bar ── */
+    .loading-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      width: 0;
+      background: #000;
+      opacity: 0.3;
+      animation: none;
+    }
+    .loading-bar.running {
+      animation: loadpulse 1.8s ease-in-out infinite;
+    }
+    @keyframes loadpulse {
+      0%   { width: 0; opacity: 0.3; }
+      50%  { width: 70%; opacity: 0.5; }
+      100% { width: 95%; opacity: 0.2; }
+    }
+
+    /* ── Response card ── */
+    #response-card {
+      display: none;
+      animation: fadeUp 0.4s ease both;
+    }
+    #response-card.visible { display: block; }
+
+    .response-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .badge {
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: rgba(0,229,160,0.12);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    #response-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── Error ── */
+    #error-box {
+      display: none;
+      background: rgba(255,107,107,0.08);
+      border: 1px solid var(--warn);
+      border-radius: 6px;
+      padding: 14px 16px;
+      color: var(--warn);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    #error-box.visible { display: block; }
+
+    /* ── Pipeline diagram ── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+      animation: fadeUp 0.5s 0.1s ease both;
+      opacity: 0;
+    }
+    .pipeline.visible { opacity: 1; }
+    .pipe-step {
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .pipe-step.active {
+      background: rgba(0,229,160,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .pipe-arrow { color: var(--border); font-size: 12px; }
+
+    /* ── Animations ── */
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(-20px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">// DevOps Assignment — Multi-Tier App</div>
+    <h1>LLM Prompt <span>Console</span></h1>
+    <div class="subtitle">Frontend → FastAPI → SQLite → HuggingFace → Response</div>
+  </header>
+
+  <!-- Pipeline steps -->
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-step" id="p-select">SELECT PROMPT</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="p-send">SEND ID</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="p-db">QUERY DB</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="p-llm">CALL LLM</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step" id="p-resp">RESPONSE</div>
+  </div>
+
+  <!-- Step 1: Select prompt -->
+  <div class="card">
+    <div class="step-label">Step 01 — Select a Prompt</div>
+    <div class="select-wrap">
+      <select id="prompt-select">
+        <option value="">— Choose a prompt —</option>
+      </select>
+      <span class="chevron">▾</span>
+    </div>
+    <div id="prompt-preview"></div>
+
+    <button id="submit-btn" disabled>
+      Run Prompt
+      <div class="loading-bar" id="loading-bar"></div>
+    </button>
+    <div id="error-box"></div>
+  </div>
+
+  <!-- Step 2: Response -->
+  <div class="card" id="response-card">
+    <div class="step-label">Step 02 — LLM Response</div>
+    <div class="response-meta">
+      <span class="badge">DEEPSEEK-R1</span>
+      <span id="resp-title"></span>
+    </div>
+    <div id="response-text"></div>
+  </div>
+
+  <footer>DEVOPS CLASS PROJECT &nbsp;·&nbsp; FASTAPI + SQLITE + HUGGINGFACE</footer>
+</div>
+
+<script>
+  const BASE = "http://127.0.0.1:8000";
+
+  const selectEl   = document.getElementById("prompt-select");
+  const preview    = document.getElementById("prompt-preview");
+  const submitBtn  = document.getElementById("submit-btn");
+  const loadingBar = document.getElementById("loading-bar");
+  const errorBox   = document.getElementById("error-box");
+  const respCard   = document.getElementById("response-card");
+  const respTitle  = document.getElementById("resp-title");
+  const respText   = document.getElementById("response-text");
+  const pipeline   = document.getElementById("pipeline");
+
+  // Prompts cache: id → { title, content }
+  const promptsMap = {};
+
+  // ── Load prompts from backend ──────────────────────────────────────────────
+  async function loadPrompts() {
+    try {
+      const res  = await fetch(`${BASE}/api/prompts`);
+      const data = await res.json();
+      data.forEach(p => {
+        promptsMap[p.id] = p;
+        const opt = document.createElement("option");
+        opt.value       = p.id;
+        opt.textContent = p.title;
+        selectEl.appendChild(opt);
+      });
+      pipeline.classList.add("visible");
+    } catch (e) {
+      showError("Could not connect to backend. Make sure FastAPI is running on port 8000.");
+    }
+  }
+
+  // ── On select change ───────────────────────────────────────────────────────
+  selectEl.addEventListener("change", () => {
+    const id = selectEl.value;
+    hideError();
+    hideResponse();
+
+    if (!id) {
+      preview.classList.remove("visible");
+      submitBtn.disabled = true;
+      return;
+    }
+
+    // Show prompt text in preview
+    fetch(`${BASE}/api/prompts`)                     // re-use cached if you prefer
+      .then(r => r.json())
+      .then(data => {
+        const p = data.find(x => x.id == id);
+        if (p && p.content) {
+          preview.textContent = p.content;
+          preview.classList.add("visible");
+        }
+      });
+
+    submitBtn.disabled = false;
+    activatePipe("p-select");
+  });
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  submitBtn.addEventListener("click", async () => {
+    const id = parseInt(selectEl.value);
+    if (!id) return;
+
+    setLoading(true);
+    hideError();
+    hideResponse();
+
+    activatePipe("p-send");
+    setTimeout(() => activatePipe("p-db"),  400);
+    setTimeout(() => activatePipe("p-llm"), 900);
+
+    try {
+      const res  = await fetch(`${BASE}/api/submit`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ prompt_id: id }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Server error");
+      }
+
+      const data = await res.json();
+      activatePipe("p-resp");
+      showResponse(data);
+
+    } catch (e) {
+      showError(e.message);
+      resetPipeline();
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function setLoading(on) {
+    submitBtn.disabled = on;
+    submitBtn.textContent = on ? "Calling LLM…" : "Run Prompt";
+    if (on) submitBtn.appendChild(loadingBar);
+    loadingBar.className = "loading-bar" + (on ? " running" : "");
+  }
+
+  function showResponse(data) {
+    respTitle.textContent = data.prompt_title;
+    respText.textContent  = data.llm_response;
+    respCard.classList.add("visible");
+    respCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function hideResponse() { respCard.classList.remove("visible"); }
+
+  function showError(msg) {
+    errorBox.textContent = "✗ " + msg;
+    errorBox.classList.add("visible");
+  }
+  function hideError() { errorBox.classList.remove("visible"); }
+
+  function activatePipe(id) {
+    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active"));
+    document.getElementById(id)?.classList.add("active");
+  }
+  function resetPipeline() {
+    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active"));
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  loadPrompts();
+</script>
+</body>
+</html>
