@@ -6,19 +6,23 @@ from pydantic import BaseModel
 import sqlite3
 import requests
 import os
+from dotenv import load_dotenv
 
 # ── Config ────────────────────────────────────────────────────────────────────
-from dotenv import load_dotenv
 load_dotenv()
 HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")
-HF_MODEL = "deepseek-ai/DeepSeek-R1"
-HF_URL   = "https://router.huggingface.co/v1/chat/completions"
-
-
+HF_MODEL     = "deepseek-ai/DeepSeek-R1"
+HF_URL       = "https://router.huggingface.co/v1/chat/completions"
 DB_PATH      = "prompts.db"
 
 # ── App ───────────────────────────────────────────────────────────────────────
-app = FastAPI(title="LLM Prompt App")
+app = FastAPI(
+    title="LLM Prompt App",
+    description="Multi-tier AI application with FastAPI + SQLite + HuggingFace",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,7 +50,6 @@ def init_db():
             content TEXT NOT NULL
         )
     """)
-    # Seed data (only if empty)
     cur.execute("SELECT COUNT(*) FROM prompts")
     if cur.fetchone()[0] == 0:
         seed = [
@@ -71,45 +74,21 @@ init_db()
 class SubmitRequest(BaseModel):
     prompt_id: int
 
-# ── Routes ────────────────────────────────────────────────────────────────────
-@app.get("/")
-def serve_frontend():
-    return FileResponse("../frontend/index.html")
+class FreeTextRequest(BaseModel):
+    prompt_text: str
 
-@app.get("/api/prompts")
-def list_prompts():
-    """Return all prompts (id + title) for the dropdown."""
-    conn = get_db()
-    rows = conn.execute("SELECT id, title FROM prompts ORDER BY id").fetchall()
-    conn.close()
-    return [{"id": r["id"], "title": r["title"]} for r in rows]
-
-@app.post("/api/submit")
-def submit_prompt(body: SubmitRequest):
-    """Fetch prompt from DB → send to LLM → return response."""
-    # 1. Query database
-    conn = get_db()
-    row  = conn.execute("SELECT * FROM prompts WHERE id = ?", (body.prompt_id,)).fetchone()
-    conn.close()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Prompt not found")
-
-    prompt_text = row["content"]
-
-    # 2. Call HuggingFace Inference API
+# ── Helper: call HuggingFace ──────────────────────────────────────────────────
+def call_llm(prompt_text: str) -> str:
     headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
     payload = {
         "model": HF_MODEL,
         "messages": [{"role": "user", "content": prompt_text}],
     }
-
     try:
         hf_resp = requests.post(HF_URL, headers=headers, json=payload, timeout=60)
         hf_resp.raise_for_status()
         result = hf_resp.json()
-        llm_output = result["choices"][0]["message"]["content"].strip()
-
+        return result["choices"][0]["message"]["content"].strip()
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="LLM API timed out. Try again.")
     except requests.exceptions.HTTPError as e:
@@ -117,10 +96,63 @@ def submit_prompt(body: SubmitRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # 3. Return to frontend
+# ── Routes ────────────────────────────────────────────────────────────────────
+@app.get("/", tags=["Frontend"])
+def serve_frontend():
+    """Serve the frontend HTML page."""
+    return FileResponse("../frontend/index.html")
+
+@app.get("/api/prompts", tags=["Prompts"])
+def list_prompts():
+    """Return all available prompts (id + title) for the dropdown."""
+    conn = get_db()
+    rows = conn.execute("SELECT id, title FROM prompts ORDER BY id").fetchall()
+    conn.close()
+    return [{"id": r["id"], "title": r["title"]} for r in rows]
+
+@app.post("/api/submit", tags=["Prompts"])
+def submit_prompt(body: SubmitRequest):
+    """
+    Accept a prompt ID → fetch from DB → call LLM → return response.
+    Used by the frontend UI.
+    """
+    conn = get_db()
+    row  = conn.execute("SELECT * FROM prompts WHERE id = ?", (body.prompt_id,)).fetchone()
+    conn.close()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+
+    llm_output = call_llm(row["content"])
+
     return {
         "prompt_id":    row["id"],
         "prompt_title": row["title"],
-        "prompt_text":  prompt_text,
+        "prompt_text":  row["content"],
         "llm_response": llm_output,
+    }
+
+@app.post("/api/submit-text", tags=["Lambda"])
+def submit_free_text(body: FreeTextRequest):
+    """
+    Accept any raw prompt text → call LLM → return response.
+    Used by AWS Lambda for event-driven S3 processing.
+    """
+    if not body.prompt_text.strip():
+        raise HTTPException(status_code=400, detail="prompt_text cannot be empty")
+
+    llm_output = call_llm(body.prompt_text)
+
+    return {
+        "prompt_text":  body.prompt_text,
+        "llm_response": llm_output,
+    }
+
+@app.get("/api/health", tags=["System"])
+def health_check():
+    """Check if the API is running correctly."""
+    return {
+        "status":    "ok",
+        "model":     HF_MODEL,
+        "token_set": bool(HF_API_TOKEN),
     }
