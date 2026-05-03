@@ -742,6 +742,8 @@
   }
 
   function showResponse(title, text, isS3 = false) {
+    // Remove <think>...</think> block that DeepSeek-R1 adds
+    text = text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     document.getElementById("resp-title").textContent = title || "";
     document.getElementById("response-text").textContent = text;
     const badge = document.getElementById("resp-badge");
