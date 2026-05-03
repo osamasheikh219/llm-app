@@ -14,6 +14,7 @@
       --border:    #1e2330;
       --accent:    #00e5a0;
       --accent2:   #0099ff;
+      --accent3:   #a855f7;
       --text:      #c8d0e0;
       --muted:     #4a5370;
       --warn:      #ff6b6b;
@@ -32,20 +33,6 @@
       padding: 40px 20px 80px;
     }
 
-    /* Subtle grid background */
-    /*body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.35;
-      pointer-events: none;
-      z-index: 0;
-    }*/
-
     .container {
       position: relative;
       z-index: 1;
@@ -60,26 +47,10 @@
       padding-left: 20px;
       animation: slideIn 0.5s ease both;
     }
-    .tag {
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    h1 {
-      font-family: var(--sans);
-      font-size: clamp(28px, 5vw, 42px);
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.1;
-    }
+    .tag { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    h1 { font-family: var(--sans); font-size: clamp(28px, 5vw, 42px); font-weight: 800; color: #fff; line-height: 1.1; }
     h1 span { color: var(--accent); }
-    .subtitle {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--muted);
-    }
+    .subtitle { margin-top: 10px; font-size: 13px; color: var(--muted); }
 
     /* ── Card ── */
     .card {
@@ -91,212 +62,298 @@
       animation: fadeUp 0.5s ease both;
     }
 
-    /* ── Step badge ── */
+    /* ── Step label ── */
     .step-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
     }
-    .step-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
+    .step-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    /* ── Select ── */
-    .select-wrap {
-      position: relative;
-    }
-    select {
-      width: 100%;
-      background: var(--bg);
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 0;
       border: 1px solid var(--border);
       border-radius: 6px;
-      color: var(--text);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 11px 16px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
       font-family: var(--mono);
-      font-size: 14px;
-      padding: 14px 44px 14px 16px;
-      appearance: none;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: border-color 0.2s;
-      outline: none;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-right: 1px solid var(--border);
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+    .tab-btn.active {
+      background: rgba(0,229,160,0.08);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .tab-btn.active.s3-tab {
+      background: rgba(168,85,247,0.08);
+      color: var(--accent3);
+    }
+    .tab-icon { font-size: 14px; }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Select ── */
+    .select-wrap { position: relative; }
+    select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--mono);
+      font-size: 14px; padding: 14px 44px 14px 16px; appearance: none;
+      cursor: pointer; transition: border-color 0.2s; outline: none;
     }
     select:hover, select:focus { border-color: var(--accent); }
-    .chevron {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      color: var(--muted);
-    }
+    .chevron { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
 
     /* ── Prompt preview ── */
     #prompt-preview {
+      margin-top: 16px; padding: 14px 16px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+      color: var(--muted); min-height: 56px; line-height: 1.6;
+      transition: all 0.3s; display: none;
+    }
+    #prompt-preview.visible { display: block; border-color: var(--accent2); color: var(--text); }
+    #prompt-preview::before { content: '$ prompt ▸ '; color: var(--accent2); font-weight: 600; }
+
+    /* ── File Upload Area ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: var(--bg);
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent3);
+      background: rgba(168,85,247,0.05);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    .upload-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+    .upload-title { font-family: var(--sans); font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .upload-hint { font-size: 12px; color: var(--muted); }
+    .upload-hint span { color: var(--accent3); }
+
+    /* ── File selected state ── */
+    #file-selected-info {
+      display: none;
       margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(168,85,247,0.08);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #file-selected-info.has-file { display: flex; }
+    #file-selected-info .file-icon { font-size: 18px; }
+    #file-selected-info .file-name { flex: 1; font-weight: 600; color: var(--accent3); }
+    #file-selected-info .file-size { color: var(--muted); font-size: 11px; }
+    #file-clear-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 16px; padding: 2px 6px; transition: color 0.2s;
+    }
+    #file-clear-btn:hover { color: var(--warn); }
+
+    /* ── Preview of txt content ── */
+    #file-content-preview {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    #file-content-preview.visible { display: block; border-color: var(--accent3); color: var(--text); }
+    #file-content-preview::before { content: '$ file.txt ▸ '; color: var(--accent3); font-weight: 600; }
+
+    /* ── Upload status ── */
+    #upload-status {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    #upload-status.uploading { display: flex; align-items: center; gap: 8px; background: rgba(0,153,255,0.08); border: 1px solid rgba(0,153,255,0.3); color: var(--accent2); }
+    #upload-status.success { display: flex; align-items: center; gap: 8px; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.3); color: var(--accent); }
+    #upload-status.error { display: flex; align-items: center; gap: 8px; background: rgba(255,107,107,0.08); border: 1px solid var(--warn); color: var(--warn); }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Submit buttons ── */
+    .run-btn {
+      width: 100%; margin-top: 20px; padding: 16px;
+      border: none; border-radius: 6px; font-family: var(--mono);
+      font-size: 14px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      position: relative; overflow: hidden;
+    }
+    .run-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .run-btn:active:not(:disabled) { transform: translateY(0); }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    #submit-btn { background: var(--accent); color: #000; }
+    #upload-btn { background: var(--accent3); color: #fff; }
+
+    .loading-bar {
+      position: absolute; bottom: 0; left: 0; height: 3px; width: 0; opacity: 0.4;
+    }
+    .loading-bar.running { animation: loadpulse 1.8s ease-in-out infinite; }
+    @keyframes loadpulse {
+      0% { width: 0; opacity: 0.3; } 50% { width: 70%; opacity: 0.5; } 100% { width: 95%; opacity: 0.2; }
+    }
+    #submit-btn .loading-bar { background: #000; }
+    #upload-btn .loading-bar { background: #fff; }
+
+    /* ── Error box ── */
+    .error-box {
+      display: none;
+      background: rgba(255,107,107,0.08); border: 1px solid var(--warn);
+      border-radius: 6px; padding: 14px 16px; color: var(--warn);
+      font-size: 13px; margin-top: 16px;
+    }
+    .error-box.visible { display: block; }
+
+    /* ── Response card ── */
+    #response-card { display: none; animation: fadeUp 0.4s ease both; }
+    #response-card.visible { display: block; }
+    .response-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 12px; color: var(--muted); }
+    .badge { padding: 2px 10px; border-radius: 20px; background: rgba(0,229,160,0.12); color: var(--accent); font-weight: 600; font-size: 11px; letter-spacing: 1px; }
+    .badge.s3 { background: rgba(168,85,247,0.12); color: var(--accent3); }
+    #response-text { font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+
+    /* ── Pipeline ── */
+    .pipeline { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 40px; animation: fadeUp 0.5s 0.1s ease both; opacity: 0; }
+    .pipeline.visible { opacity: 1; }
+    .pipe-step { font-size: 10px; letter-spacing: 1px; padding: 4px 10px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); white-space: nowrap; transition: all 0.3s; }
+    .pipe-step.active { background: rgba(0,229,160,0.1); border-color: var(--accent); color: var(--accent); }
+    .pipe-step.active.s3 { background: rgba(168,85,247,0.1); border-color: var(--accent3); color: var(--accent3); }
+    .pipe-arrow { color: var(--border); font-size: 12px; }
+
+    /* ── S3 Outputs ── */
+    #outputs-section { display: none; animation: fadeUp 0.4s ease both; }
+    #outputs-section.visible { display: block; }
+
+    .outputs-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .outputs-count {
+      font-size: 12px; color: var(--muted);
+    }
+    .outputs-count span { color: var(--accent3); font-weight: 600; }
+
+    #refresh-btn {
+      padding: 8px 16px; background: transparent;
+      border: 1px solid var(--accent3); border-radius: 6px;
+      color: var(--accent3); font-family: var(--mono); font-size: 11px;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    #refresh-btn:hover { background: rgba(168,85,247,0.1); }
+    #refresh-btn.spinning .refresh-icon { animation: spin 1s linear infinite; }
+
+    .output-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .output-item {
+      display: flex; align-items: center; gap: 14px;
       padding: 14px 16px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 13px;
-      color: var(--muted);
-      min-height: 56px;
-      line-height: 1.6;
-      transition: all 0.3s;
-      display: none;
+      transition: border-color 0.2s;
+      animation: fadeUp 0.3s ease both;
     }
-    #prompt-preview.visible {
-      display: block;
-      border-color: var(--accent2);
-      color: var(--text);
-    }
-    #prompt-preview::before {
-      content: '$ prompt ▸ ';
-      color: var(--accent2);
-      font-weight: 600;
-    }
+    .output-item:hover { border-color: var(--accent3); }
 
-    /* ── Submit button ── */
-    button#submit-btn {
-      width: 100%;
-      margin-top: 20px;
-      padding: 16px;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      position: relative;
-      overflow: hidden;
+    .output-icon { font-size: 20px; flex-shrink: 0; }
+    .output-info { flex: 1; min-width: 0; }
+    .output-name {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    button#submit-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-    button#submit-btn:active:not(:disabled) { transform: translateY(0); }
-    button#submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .output-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .output-meta span { color: var(--accent3); }
 
-    /* ── Loading bar ── */
-    .loading-bar {
-      position: absolute;
-      bottom: 0; left: 0;
-      height: 3px;
-      width: 0;
-      background: #000;
-      opacity: 0.3;
-      animation: none;
+    .download-btn {
+      padding: 7px 14px; background: rgba(168,85,247,0.1);
+      border: 1px solid rgba(168,85,247,0.3); border-radius: 6px;
+      color: var(--accent3); font-family: var(--mono); font-size: 11px;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+      text-decoration: none; white-space: nowrap;
+      transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+      flex-shrink: 0;
     }
-    .loading-bar.running {
-      animation: loadpulse 1.8s ease-in-out infinite;
-    }
-    @keyframes loadpulse {
-      0%   { width: 0; opacity: 0.3; }
-      50%  { width: 70%; opacity: 0.5; }
-      100% { width: 95%; opacity: 0.2; }
-    }
+    .download-btn:hover { background: rgba(168,85,247,0.2); border-color: var(--accent3); }
 
-    /* ── Response card ── */
-    #response-card {
-      display: none;
-      animation: fadeUp 0.4s ease both;
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--muted); font-size: 13px;
     }
-    #response-card.visible { display: block; }
-
-    .response-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .badge {
-      padding: 2px 10px;
-      border-radius: 20px;
-      background: rgba(0,229,160,0.12);
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 1px;
-    }
-
-    #response-text {
-      font-size: 14px;
-      line-height: 1.8;
-      color: var(--text);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* ── Error ── */
-    #error-box {
-      display: none;
-      background: rgba(255,107,107,0.08);
-      border: 1px solid var(--warn);
-      border-radius: 6px;
-      padding: 14px 16px;
-      color: var(--warn);
-      font-size: 13px;
-      margin-top: 16px;
-    }
-    #error-box.visible { display: block; }
-
-    /* ── Pipeline diagram ── */
-    .pipeline {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-      animation: fadeUp 0.5s 0.1s ease both;
-      opacity: 0;
-    }
-    .pipeline.visible { opacity: 1; }
-    .pipe-step {
-      font-size: 10px;
-      letter-spacing: 1px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      white-space: nowrap;
-      transition: all 0.3s;
-    }
-    .pipe-step.active {
-      background: rgba(0,229,160,0.1);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .pipe-arrow { color: var(--border); font-size: 12px; }
+    .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; display: block; }
 
     /* ── Animations ── */
-    @keyframes slideIn {
-      from { opacity:0; transform: translateX(-20px); }
-      to   { opacity:1; transform: translateX(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity:0; transform: translateY(16px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
+    @keyframes slideIn { from { opacity:0; transform: translateX(-20px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
 
     /* ── Footer ── */
-    footer {
-      margin-top: 48px;
-      text-align: center;
+    footer { margin-top: 48px; text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+    /* ── Divider ── */
+    .section-divider {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin: 32px 0;
+    }
+    .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* S3 lambda note */
+    .lambda-note {
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: rgba(0,153,255,0.06);
+      border: 1px solid rgba(0,153,255,0.2);
+      border-radius: 6px;
       font-size: 11px;
       color: var(--muted);
-      letter-spacing: 1px;
+      line-height: 1.6;
     }
+    .lambda-note strong { color: var(--accent2); }
   </style>
 </head>
 <body>
@@ -305,91 +362,173 @@
   <header>
     <div class="tag">// DevOps Assignment — Multi-Tier App</div>
     <h1>LLM Prompt <span>Console</span></h1>
-    <div class="subtitle">Frontend → FastAPI → SQLite → HuggingFace → Response</div>
+    <div class="subtitle">Frontend → FastAPI → SQLite / S3 → Lambda → HuggingFace → Response</div>
   </header>
 
   <!-- Pipeline steps -->
   <div class="pipeline" id="pipeline">
-    <div class="pipe-step" id="p-select">SELECT PROMPT</div>
+    <div class="pipe-step" id="p-select">INPUT</div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-step" id="p-send">SEND ID</div>
+    <div class="pipe-step" id="p-send">SEND</div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-step" id="p-db">QUERY DB</div>
+    <div class="pipe-step" id="p-db">DB / S3</div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-step" id="p-llm">CALL LLM</div>
+    <div class="pipe-step" id="p-llm">LLM</div>
     <div class="pipe-arrow">→</div>
     <div class="pipe-step" id="p-resp">RESPONSE</div>
   </div>
 
-  <!-- Step 1: Select prompt -->
+  <!-- ── Step 1: Tabbed Input Card ── -->
   <div class="card">
-    <div class="step-label">Step 01 — Select a Prompt</div>
-    <div class="select-wrap">
-      <select id="prompt-select">
-        <option value="">— Choose a prompt —</option>
-      </select>
-      <span class="chevron">▾</span>
-    </div>
-    <div id="prompt-preview"></div>
+    <div class="step-label">Step 01 — Choose Input Method</div>
 
-    <button id="submit-btn" disabled>
-      Run Prompt
-      <div class="loading-bar" id="loading-bar"></div>
-    </button>
-    <div id="error-box"></div>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-preset" onclick="switchTab('preset')">
+        <span class="tab-icon">📋</span> Preset Prompt
+      </button>
+      <button class="tab-btn s3-tab" id="tab-upload" onclick="switchTab('upload')">
+        <span class="tab-icon">☁️</span> Upload .txt → S3
+      </button>
+    </div>
+
+    <!-- Tab A: Preset Dropdown -->
+    <div class="tab-panel active" id="panel-preset">
+      <div class="select-wrap">
+        <select id="prompt-select">
+          <option value="">— Choose a prompt —</option>
+        </select>
+        <span class="chevron">▾</span>
+      </div>
+      <div id="prompt-preview"></div>
+      <button class="run-btn" id="submit-btn" disabled>
+        Run Prompt
+        <div class="loading-bar" id="loading-bar-preset"></div>
+      </button>
+      <div class="error-box" id="error-box-preset"></div>
+    </div>
+
+    <!-- Tab B: File Upload -->
+    <div class="tab-panel" id="panel-upload">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".txt" />
+        <span class="upload-icon">📄</span>
+        <div class="upload-title">Drop your .txt file here</div>
+        <div class="upload-hint">or <span>click to browse</span> — .txt files only</div>
+      </div>
+
+      <div class="output-item" id="file-selected-info" style="display:none; margin-top:16px;">
+        <span class="file-icon">📄</span>
+        <div class="output-info">
+          <div class="output-name" id="file-name-display">—</div>
+          <div class="output-meta" id="file-size-display"></div>
+        </div>
+        <button id="file-clear-btn" title="Remove file">✕</button>
+      </div>
+
+      <div id="file-content-preview"></div>
+
+      <div class="lambda-note">
+        <strong>How this works:</strong> Your .txt file is uploaded to S3 <code>inputs/</code> → an S3 trigger fires the Lambda function → Lambda calls the LLM → response is saved to S3 <code>outputs/</code>. Check the outputs panel below after a few seconds.
+      </div>
+
+      <div id="upload-status"></div>
+
+      <button class="run-btn" id="upload-btn" disabled>
+        Upload to S3
+        <div class="loading-bar" id="loading-bar-upload"></div>
+      </button>
+      <div class="error-box" id="error-box-upload"></div>
+    </div>
   </div>
 
-  <!-- Step 2: Response -->
+  <!-- ── Step 2: LLM Response (preset path) ── -->
   <div class="card" id="response-card">
     <div class="step-label">Step 02 — LLM Response</div>
     <div class="response-meta">
-      <span class="badge">DEEPSEEK-R1</span>
+      <span class="badge" id="resp-badge">DEEPSEEK-R1</span>
       <span id="resp-title"></span>
     </div>
     <div id="response-text"></div>
   </div>
 
-  <footer>DEVOPS CLASS PROJECT &nbsp;·&nbsp; FASTAPI + SQLITE + HUGGINGFACE</footer>
+  <!-- ── Divider ── -->
+  <div class="section-divider">S3 Output Files</div>
+
+  <!-- ── Step 3: S3 Outputs ── -->
+  <div class="card" id="outputs-section">
+    <div class="step-label">Step 03 — S3 Outputs Bucket</div>
+    <div class="outputs-header">
+      <div class="outputs-count">Files in <code>outputs/</code>: <span id="output-count">—</span></div>
+      <button id="refresh-btn" onclick="loadOutputs()">
+        <span class="refresh-icon">↻</span> Refresh
+      </button>
+    </div>
+    <div class="output-list" id="output-list">
+      <div class="empty-state">
+        <span class="empty-icon">🗂️</span>
+        Click Refresh to load output files
+      </div>
+    </div>
+  </div>
+
+  <footer>DEVOPS CLASS PROJECT &nbsp;·&nbsp; FASTAPI + SQLITE + S3 + LAMBDA + HUGGINGFACE</footer>
 </div>
 
 <script>
   const BASE = "http://ec2-3-86-4-54.compute-1.amazonaws.com";
 
-  const selectEl   = document.getElementById("prompt-select");
-  const preview    = document.getElementById("prompt-preview");
-  const submitBtn  = document.getElementById("submit-btn");
-  const loadingBar = document.getElementById("loading-bar");
-  const errorBox   = document.getElementById("error-box");
-  const respCard   = document.getElementById("response-card");
-  const respTitle  = document.getElementById("resp-title");
-  const respText   = document.getElementById("response-text");
-  const pipeline   = document.getElementById("pipeline");
+  // ── Elements ───────────────────────────────────────────────────────────────
+  const selectEl        = document.getElementById("prompt-select");
+  const preview         = document.getElementById("prompt-preview");
+  const submitBtn       = document.getElementById("submit-btn");
+  const uploadBtn       = document.getElementById("upload-btn");
+  const fileInput       = document.getElementById("file-input");
+  const fileInfo        = document.getElementById("file-selected-info");
+  const fileNameDisplay = document.getElementById("file-name-display");
+  const fileSizeDisplay = document.getElementById("file-size-display");
+  const filePreview     = document.getElementById("file-content-preview");
+  const uploadStatus    = document.getElementById("upload-status");
+  const pipeline        = document.getElementById("pipeline");
+  const outputList      = document.getElementById("output-list");
+  const outputCount     = document.getElementById("output-count");
+  const refreshBtn      = document.getElementById("refresh-btn");
+  const outputsSection  = document.getElementById("outputs-section");
 
-  // Prompts cache: id → { title, content }
-  const promptsMap = {};
+  let selectedFile = null;
 
-  // ── Load prompts from backend ──────────────────────────────────────────────
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("tab-" + tab).classList.add("active");
+    document.getElementById("panel-" + tab).classList.add("active");
+    resetPipeline();
+    hideResponse();
+  }
+
+  // ── Load preset prompts ────────────────────────────────────────────────────
   async function loadPrompts() {
     try {
       const res  = await fetch(`${BASE}/api/prompts`);
       const data = await res.json();
       data.forEach(p => {
-        promptsMap[p.id] = p;
         const opt = document.createElement("option");
-        opt.value       = p.id;
+        opt.value = p.id;
         opt.textContent = p.title;
         selectEl.appendChild(opt);
       });
       pipeline.classList.add("visible");
+      outputsSection.classList.add("visible");
     } catch (e) {
-      showError("Could not connect to backend. Make sure FastAPI is running on port 8000.");
+      showError("error-box-preset", "Could not connect to backend. Make sure FastAPI is running.");
     }
   }
 
-  // ── On select change ───────────────────────────────────────────────────────
+  // ── Preset select change ───────────────────────────────────────────────────
   selectEl.addEventListener("change", () => {
     const id = selectEl.value;
-    hideError();
+    hideError("error-box-preset");
     hideResponse();
 
     if (!id) {
@@ -397,9 +536,7 @@
       submitBtn.disabled = true;
       return;
     }
-
-    // Show prompt text in preview
-    fetch(`${BASE}/api/prompts`)                     // re-use cached if you prefer
+    fetch(`${BASE}/api/prompts`)
       .then(r => r.json())
       .then(data => {
         const p = data.find(x => x.id == id);
@@ -408,81 +545,248 @@
           preview.classList.add("visible");
         }
       });
-
     submitBtn.disabled = false;
     activatePipe("p-select");
   });
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Preset submit ──────────────────────────────────────────────────────────
   submitBtn.addEventListener("click", async () => {
     const id = parseInt(selectEl.value);
     if (!id) return;
 
-    setLoading(true);
-    hideError();
+    setPresetLoading(true);
+    hideError("error-box-preset");
     hideResponse();
-
     activatePipe("p-send");
     setTimeout(() => activatePipe("p-db"),  400);
     setTimeout(() => activatePipe("p-llm"), 900);
 
     try {
       const res  = await fetch(`${BASE}/api/submit`, {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ prompt_id: id }),
+        body: JSON.stringify({ prompt_id: id }),
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Server error");
-      }
-
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Server error"); }
       const data = await res.json();
       activatePipe("p-resp");
-      showResponse(data);
-
+      showResponse(data.prompt_title, data.llm_response, false);
     } catch (e) {
-      showError(e.message);
+      showError("error-box-preset", e.message);
       resetPipeline();
     } finally {
-      setLoading(false);
+      setPresetLoading(false);
     }
   });
 
+  // ── File input handling ────────────────────────────────────────────────────
+  fileInput.addEventListener("change", e => handleFile(e.target.files[0]));
+
+  // Drag & drop
+  const zone = document.getElementById("upload-zone");
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("drag-over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.classList.remove("drag-over");
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.endsWith(".txt")) handleFile(f);
+    else showError("error-box-upload", "Only .txt files are accepted.");
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.name.endsWith(".txt")) {
+      showError("error-box-upload", "Only .txt files are accepted.");
+      return;
+    }
+    selectedFile = file;
+    fileNameDisplay.textContent = file.name;
+    fileSizeDisplay.innerHTML = `Size: <span>${formatBytes(file.size)}</span>`;
+    fileInfo.style.display = "flex";
+    uploadBtn.disabled = false;
+    hideError("error-box-upload");
+    clearUploadStatus();
+
+    // Show file preview
+    const reader = new FileReader();
+    reader.onload = e => {
+      const content = e.target.result.trim();
+      filePreview.textContent = content.length > 200 ? content.slice(0, 200) + "…" : content;
+      filePreview.classList.add("visible");
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById("file-clear-btn").addEventListener("click", clearFile);
+  function clearFile() {
+    selectedFile = null;
+    fileInput.value = "";
+    fileInfo.style.display = "none";
+    filePreview.textContent = "";
+    filePreview.classList.remove("visible");
+    uploadBtn.disabled = true;
+    clearUploadStatus();
+    hideError("error-box-upload");
+  }
+
+  // ── Upload to S3 ───────────────────────────────────────────────────────────
+  uploadBtn.addEventListener("click", async () => {
+    if (!selectedFile) return;
+
+    setUploadLoading(true);
+    hideError("error-box-upload");
+    hideResponse();
+    activatePipe("p-select", true);
+
+    setUploadStatus("uploading", "⟳", "Uploading to S3 inputs/…");
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      activatePipe("p-send", true);
+      const res = await fetch(`${BASE}/api/upload-prompt`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Upload failed"); }
+      const data = await res.json();
+
+      activatePipe("p-db", true);
+      setUploadStatus("success", "✓",
+        `Uploaded to ${data.uploaded} — Lambda will process it automatically. Refresh outputs in a few seconds.`
+      );
+
+      // Highlight that Lambda is running
+      setTimeout(() => activatePipe("p-llm", true), 600);
+
+      // Auto-refresh outputs after 8 seconds to give Lambda time
+      setTimeout(() => {
+        activatePipe("p-resp", true);
+        loadOutputs();
+      }, 8000);
+
+    } catch (e) {
+      showError("error-box-upload", e.message);
+      resetPipeline();
+    } finally {
+      setUploadLoading(false);
+    }
+  });
+
+  // ── Load S3 Outputs ────────────────────────────────────────────────────────
+  async function loadOutputs() {
+    refreshBtn.classList.add("spinning");
+    outputList.innerHTML = `<div class="empty-state"><span class="empty-icon" style="animation:spin 1s linear infinite;display:inline-block">↻</span><br><br>Loading output files…</div>`;
+
+    try {
+      const res  = await fetch(`${BASE}/api/outputs`);
+      if (!res.ok) throw new Error("Could not fetch outputs");
+      const files = await res.json();
+
+      outputCount.textContent = files.length;
+
+      if (files.length === 0) {
+        outputList.innerHTML = `<div class="empty-state"><span class="empty-icon">🗂️</span>No output files yet. Upload a .txt prompt to get started.</div>`;
+        return;
+      }
+
+      outputList.innerHTML = "";
+      files.forEach((f, i) => {
+        const item = document.createElement("div");
+        item.className = "output-item";
+        item.style.animationDelay = `${i * 0.06}s`;
+        item.innerHTML = `
+          <span class="output-icon">📄</span>
+          <div class="output-info">
+            <div class="output-name">${escapeHtml(f.filename)}</div>
+            <div class="output-meta">
+              ${formatBytes(f.size)} &nbsp;·&nbsp;
+              <span>${formatDate(f.last_modified)}</span>
+            </div>
+          </div>
+          <a class="download-btn" href="${escapeHtml(f.download_url)}" target="_blank" download="${escapeHtml(f.filename)}">
+            ↓ Download
+          </a>
+        `;
+        outputList.appendChild(item);
+      });
+    } catch (e) {
+      outputList.innerHTML = `<div class="empty-state" style="color:var(--warn)">✗ ${escapeHtml(e.message)}</div>`;
+    } finally {
+      refreshBtn.classList.remove("spinning");
+    }
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
-  function setLoading(on) {
+  function setPresetLoading(on) {
     submitBtn.disabled = on;
-    submitBtn.textContent = on ? "Calling LLM…" : "Run Prompt";
-    if (on) submitBtn.appendChild(loadingBar);
-    loadingBar.className = "loading-bar" + (on ? " running" : "");
+    submitBtn.childNodes[0].textContent = on ? "Calling LLM… " : "Run Prompt";
+    document.getElementById("loading-bar-preset").className = "loading-bar" + (on ? " running" : "");
   }
 
-  function showResponse(data) {
-    respTitle.textContent = data.prompt_title;
-    respText.textContent  = data.llm_response;
-    respCard.classList.add("visible");
-    respCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  function setUploadLoading(on) {
+    uploadBtn.disabled = on;
+    uploadBtn.childNodes[0].textContent = on ? "Uploading… " : "Upload to S3";
+    document.getElementById("loading-bar-upload").className = "loading-bar" + (on ? " running" : "");
   }
 
-  function hideResponse() { respCard.classList.remove("visible"); }
-
-  function showError(msg) {
-    errorBox.textContent = "✗ " + msg;
-    errorBox.classList.add("visible");
+  function setUploadStatus(type, icon, msg) {
+    uploadStatus.className = type;
+    uploadStatus.innerHTML = `<span>${icon}</span> ${msg}`;
   }
-  function hideError() { errorBox.classList.remove("visible"); }
+  function clearUploadStatus() {
+    uploadStatus.className = "";
+    uploadStatus.innerHTML = "";
+  }
 
-  function activatePipe(id) {
-    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active"));
-    document.getElementById(id)?.classList.add("active");
+  function showResponse(title, text, isS3 = false) {
+    document.getElementById("resp-title").textContent = title || "";
+    document.getElementById("response-text").textContent = text;
+    const badge = document.getElementById("resp-badge");
+    badge.textContent = isS3 ? "S3 + LAMBDA" : "DEEPSEEK-R1";
+    badge.className = isS3 ? "badge s3" : "badge";
+    document.getElementById("response-card").classList.add("visible");
+    document.getElementById("response-card").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function hideResponse() { document.getElementById("response-card").classList.remove("visible"); }
+
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = "✗ " + msg;
+    el.classList.add("visible");
+  }
+  function hideError(id) { document.getElementById(id).classList.remove("visible"); }
+
+  function activatePipe(id, isS3 = false) {
+    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active", "s3"));
+    const el = document.getElementById(id);
+    if (el) { el.classList.add("active"); if (isS3) el.classList.add("s3"); }
   }
   function resetPipeline() {
-    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".pipe-step").forEach(el => el.classList.remove("active", "s3"));
+  }
+
+  function formatBytes(b) {
+    if (b < 1024) return b + " B";
+    if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+    return (b / 1048576).toFixed(1) + " MB";
+  }
+
+  function formatDate(iso) {
+    try {
+      return new Date(iso).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    } catch { return iso; }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
   // ── Boot ───────────────────────────────────────────────────────────────────
   loadPrompts();
+  loadOutputs();
 </script>
 </body>
 </html>
