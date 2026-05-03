@@ -157,3 +157,35 @@ def health_check():
         "model":     HF_MODEL,
         "token_set": bool(HF_API_TOKEN),
     }
+
+S3_BUCKET = "llm-app-prompts-osama"
+
+@app.post("/api/upload-prompt", tags=["S3"])
+async def upload_prompt(file: UploadFile = File(...)):
+    if not file.filename.endswith(".txt"):
+        raise HTTPException(status_code=400, detail="Only .txt files allowed")
+    s3 = boto3.client("s3")
+    key = f"inputs/{file.filename}"
+    content = await file.read()
+    s3.put_object(Bucket=S3_BUCKET, Key=key, Body=content)
+    return {"uploaded": key}
+
+@app.get("/api/outputs", tags=["S3"])
+def list_outputs():
+    s3 = boto3.client("s3")
+    response = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix="outputs/")
+    files = []
+    for obj in response.get("Contents", []):
+        url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": S3_BUCKET, "Key": obj["Key"]},
+            ExpiresIn=3600
+        )
+        files.append({
+            "key": obj["Key"],
+            "filename": obj["Key"].split("/")[-1],
+            "size": obj["Size"],
+            "last_modified": obj["LastModified"].isoformat(),
+            "download_url": url
+        })
+    return sorted(files, key=lambda x: x["last_modified"], reverse=True)
