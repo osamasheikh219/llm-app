@@ -176,6 +176,8 @@ def list_outputs():
     response = s3.list_objects_v2(Bucket=S3_BUCKET, Prefix="outputs/")
     files = []
     for obj in response.get("Contents", []):
+        if obj["Key"].endswith("/") or obj["Size"] == 0:
+            continue
         url = s3.generate_presigned_url(
             "get_object",
             Params={"Bucket": S3_BUCKET, "Key": obj["Key"]},
